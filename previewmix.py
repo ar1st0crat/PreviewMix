@@ -40,6 +40,13 @@ import subprocess
 import argparse
 
 
+DEFAULT_FRAMESIZE = 25
+DEFAULT_STARTINGTIME = 60
+DEFAULT_FADESIZE = 2
+DEFAULT_BITRATE = '320k'
+DEFAULT_OUTPUTNAME = '100-preview.mp3'
+
+
 def silent_remove(filename):
     """ helper function that removes a file if it exists """
     try:
@@ -65,7 +72,7 @@ parser.add_argument('-c', '--count',
                     default='all')
 parser.add_argument('-f', '--framesize',
                     help='the size of a segment to crop from each track',
-                    default='25')
+                    default=str(DEFAULT_FRAMESIZE))
 parser.add_argument('-l', '--log',
                     help='show progress',
                     action='store_true')
@@ -77,7 +84,7 @@ folder = params.source
 
 # check and prepare destination file
 if params.destination == 'none':
-    outputfile = os.path.join(folder, '100-preview.mp3')
+    outputfile = os.path.join(folder, DEFAULT_OUTPUTNAME)
     print('The preview mix will be written to %s' % outputfile)
 else:
     outputfile = params.destination
@@ -88,8 +95,8 @@ else:
 try:
     framesize = int(params.framesize)
 except ValueError:
-    framesize = 25
-    print('Wrong framesize format! Set to default: 25 sec')
+    framesize = DEFAULT_FRAMESIZE
+    print('Wrong framesize format! Set to default: %d sec' % DEFAULT_FRAMESIZE)
 
 # create main mp3-list for further processing
 mp3tracks = [os.path.join(folder, file) for file in os.listdir(folder)
@@ -121,7 +128,8 @@ except Exception:
 Please add ffmpeg to current directory or to the system path""")
     exit()
 
-fadesize = 2
+startingtime = DEFAULT_STARTINGTIME
+fadesize = DEFAULT_FADESIZE
 tracktemp = 'temp.mp3'
 
 
@@ -140,7 +148,7 @@ try:
         # ffmpeg command for cropping mp3:
         # ffmpeg -ss 10 -t 6 -i file.mp3 [-acodec copy] temp.mp3
         subprocess.check_call([ffmpegpath,
-                               '-ss', '60',
+                               '-ss', str(startingtime),
                                '-t', str(framesize),
                                '-i',
                                track,
@@ -159,7 +167,7 @@ try:
                                tracktemp,
                                '-af',
                                fadeoption,
-                               '-ab', '320k',
+                               '-ab', DEFAULT_BITRATE,
                                trackpreview],
                               stdout=subprocess.DEVNULL,
                               stderr=subprocess.DEVNULL)
